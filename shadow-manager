@@ -1,0 +1,54 @@
+#!/usr/bin/python3
+
+import socket
+import sys, getopt
+
+#cli.send(b'add: {"server_port":9810, "password":"mypassword"}')
+#print(cli.recv(1506))  # You'll receive 'ok'
+
+#cli.send(b'remove: {"server_port":9810}')
+#print(cli.recv(1506))  # You'll receive 'ok'
+
+#cli.send(b'ping')
+#print(cli.recv(1506))  # you'll receive stat
+
+def main(argv):
+    cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    cli.connect(('127.0.0.1',6001))  # address of Shadowsocks manager
+    try:
+        opts, args = getopt.getopt(argv,"ha:d:sp:",[])
+    except getopt.GetoptError:
+        print ('-h help\n-a add_port -p password\n-d remove_port\n-s get stat')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print ('-h help\n-a add_port -p password\n-d remove_port\n-s get stat')
+            sys.exit()
+        elif opt == '-a':
+            add_port = arg
+        elif opt == '-p':
+            add_password = arg
+            if 'add_port' in vars():
+                print('add port : ',add_port)
+                command = 'add: {"server_port":'+add_port+', "password":"'+add_password+'"}'
+                cli.send(command.encode())
+                print(cli.recv(1506))  # You'll receive 'ok'
+                sys.exit()
+            else:
+                print('You must define both port and password')
+                sys.exit()
+        elif opt == '-d':
+            print('remove port : ',arg)
+            command = 'remove: {"server_port":'+arg+'}'
+            cli.send(command.encode())
+            print(cli.recv(1506))  # You'll receive 'ok'
+            sys.exit()
+        elif opt == '-s':
+            cli.send(b'ping')
+            print(cli.recv(1506))
+            sys.exit()
+    print ('-h help\n-a add_port -p password\n-d remove_port\n-s get stat')
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
+
